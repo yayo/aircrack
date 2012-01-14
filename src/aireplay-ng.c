@@ -1083,7 +1083,7 @@ int capture_ask_packet( int *caplen, int just_grab )
         pfh_out.snaplen       = 65535;
         pfh_out.linktype      = LINKTYPE_IEEE802_11;
 
-        lt = localtime( (const time_t *) &tv.tv_sec );
+        lt = localtime( (const time_t *)(const void*) &tv.tv_sec );
 
         memset( strbuf, 0, sizeof( strbuf ) );
         snprintf( strbuf,  sizeof( strbuf ) - 1,
@@ -2242,7 +2242,7 @@ int do_attack_arp_resend( void )
     pfh_out.snaplen       = 65535;
     pfh_out.linktype      = LINKTYPE_IEEE802_11;
 
-    lt = localtime( (const time_t *) &tv.tv_sec );
+    lt = localtime( (const time_t *)(const void*) &tv.tv_sec );
 
     memset( strbuf, 0, sizeof( strbuf ) );
     snprintf( strbuf,  sizeof( strbuf ) - 1,
@@ -2653,7 +2653,7 @@ int do_attack_caffe_latte( void )
     pfh_out.snaplen       = 65535;
     pfh_out.linktype      = LINKTYPE_IEEE802_11;
 
-    lt = localtime( (const time_t *) &tv.tv_sec );
+    lt = localtime( (const time_t *)(const void*) &tv.tv_sec );
 
     memset( strbuf, 0, sizeof( strbuf ) );
     snprintf( strbuf,  sizeof( strbuf ) - 1,
@@ -3976,7 +3976,7 @@ int do_attack_chopchop( void )
     pkh.caplen  = caplen;
     pkh.len     = caplen;
 
-    lt = localtime( (const time_t *) &tv.tv_sec );
+    lt = localtime( (const time_t *)(const void*) &tv.tv_sec );
 
     memset( strbuf, 0, sizeof( strbuf ) );
     snprintf( strbuf,  sizeof( strbuf ) - 1,
@@ -4586,7 +4586,7 @@ int do_attack_fragment()
             xor_keystream(prga, h80211+24, length);
         }
 
-        lt = localtime( (const time_t *) &tv.tv_sec );
+        lt = localtime( (const time_t *)(const void*) &tv.tv_sec );
 
         memset( strbuf, 0, sizeof( strbuf ) );
         snprintf( strbuf,  sizeof( strbuf ) - 1,

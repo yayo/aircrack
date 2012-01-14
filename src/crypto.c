@@ -19,6 +19,7 @@
  */
 
 #include <string.h>
+struct in_addr;
 #include <arpa/inet.h>
 #include <assert.h>
 #include <pthread.h>

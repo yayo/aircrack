@@ -5308,7 +5308,7 @@ int main( int argc, char *argv[] )
 
     gettimeofday( &tv0, NULL );
 
-    lt = localtime( (time_t *) &tv0.tv_sec );
+    lt = localtime( (time_t *)(void*) &tv0.tv_sec );
 
     G.keyout = (char*) malloc(512);
     memset( G.keyout, 0, 512 );
