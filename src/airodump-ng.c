@@ -2706,14 +2706,9 @@ char * getBatteryString(void)
 }
 
 int get_ap_list_count() {
-    time_t tt;
-    struct tm *lt;
     struct AP_info *ap_cur;
 
     int num_ap;
-
-    tt = time( NULL );
-    lt = localtime( &tt );
 
     ap_cur = G.ap_end;
 
@@ -2745,15 +2740,10 @@ int get_ap_list_count() {
 }
 
 int get_sta_list_count() {
-    time_t tt;
-    struct tm *lt;
     struct AP_info *ap_cur;
     struct ST_info *st_cur;
 
     int num_sta;
-
-    tt = time( NULL );
-    lt = localtime( &tt );
 
     ap_cur = G.ap_end;
 
@@ -3678,7 +3668,7 @@ char *get_manufacturer(unsigned char mac0, unsigned char mac1, unsigned char mac
 int dump_write_kismet_netxml( void )
 {
     int network_number, average_power, client_nbr;
-    int client_max_rate, unused;
+    int client_max_rate;
     struct AP_info *ap_cur;
     struct ST_info *st_cur;
     char first_time[TIME_STR_LENGTH];
@@ -4006,7 +3996,7 @@ int dump_write_kismet_netxml( void )
 
     /* Sometimes there can be crap at the end of the file, so truncating is a good idea.
        XXX: Is this really correct, I hope fileno() won't have any side effect */
-	unused = ftruncate(fileno(G.f_kis_xml), ftell( G.f_kis_xml ) );
+	ftruncate(fileno(G.f_kis_xml), ftell( G.f_kis_xml ) );
 
     return 0;
 }
@@ -4211,11 +4201,9 @@ int dump_write_kismet_csv( void )
 
 void gps_tracker( void )
 {
-	ssize_t unused;
     int gpsd_sock;
     char line[256], *p;
     struct sockaddr_in gpsd_addr;
-    int ret;
 
     /* attempt to connect to localhost, port 2947 */
 
@@ -4267,16 +4255,16 @@ void gps_tracker( void )
         if( line[7] == '?' )
             continue;
 
-        ret = sscanf( line + 7, "%f %f", &G.gps_loc[0], &G.gps_loc[1] );
+        sscanf( line + 7, "%f %f", &G.gps_loc[0], &G.gps_loc[1] );
 
         if( ( p = strstr( line, "V=" ) ) == NULL ) continue;
-        ret = sscanf( p + 2, "%f", &G.gps_loc[2] ); /* speed */
+        sscanf( p + 2, "%f", &G.gps_loc[2] ); /* speed */
 
         if( ( p = strstr( line, "T=" ) ) == NULL ) continue;
-        ret = sscanf( p + 2, "%f", &G.gps_loc[3] ); /* heading */
+        sscanf( p + 2, "%f", &G.gps_loc[3] ); /* heading */
 
         if( ( p = strstr( line, "A=" ) ) == NULL ) continue;
-        ret = sscanf( p + 2, "%f", &G.gps_loc[4] ); /* altitude */
+        sscanf( p + 2, "%f", &G.gps_loc[4] ); /* altitude */
 
         if (G.record_data)
         	fputs( line, G.f_gps );
@@ -4285,7 +4273,7 @@ void gps_tracker( void )
 
 		if (G.do_exit == 0)
 		{
-        	unused = write( G.gc_pipe[1], G.gps_loc, sizeof( float ) * 5 );
+        	write( G.gc_pipe[1], G.gps_loc, sizeof( float ) * 5 );
         	kill( getppid(), SIGUSR2 );
 		}
     }
@@ -4293,22 +4281,21 @@ void gps_tracker( void )
 
 void sighandler( int signum)
 {
-	ssize_t unused;
     int card=0;
 
     signal( signum, sighandler );
 
     if( signum == SIGUSR1 )
     {
-		unused = read( G.cd_pipe[0], &card, sizeof(int) );
+		read( G.cd_pipe[0], &card, sizeof(int) );
         if(G.freqoption)
-            unused = read( G.ch_pipe[0], &(G.frequency[card]), sizeof( int ) );
+            read( G.ch_pipe[0], &(G.frequency[card]), sizeof( int ) );
         else
-            unused = read( G.ch_pipe[0], &(G.channel[card]), sizeof( int ) );
+            read( G.ch_pipe[0], &(G.channel[card]), sizeof( int ) );
     }
 
     if( signum == SIGUSR2 )
-        unused = read( G.gc_pipe[0], &G.gps_loc, sizeof( float ) * 5 );
+        read( G.gc_pipe[0], &G.gps_loc, sizeof( float ) * 5 );
 
     if( signum == SIGINT || signum == SIGTERM )
     {
@@ -4429,7 +4416,6 @@ int getfreqcount(int valid)
 
 void channel_hopper(struct wif *wi[], int if_num, int chan_count )
 {
-	ssize_t unused;
     int ch, ch_idx = 0, card=0, chi=0, cai=0, j=0, k=0, first=1, again=1;
     int dropped=0;
 
@@ -4478,8 +4464,8 @@ void channel_hopper(struct wif *wi[], int if_num, int chan_count )
                 {
                     ch = wi_get_channel(wi[card]);
                     G.channel[card] = ch;
-                    unused = write( G.cd_pipe[1], &card, sizeof(int) );
-                    unused = write( G.ch_pipe[1], &ch, sizeof( int ) );
+                    write( G.cd_pipe[1], &card, sizeof(int) );
+                    write( G.ch_pipe[1], &ch, sizeof( int ) );
                     kill( getppid(), SIGUSR1 );
                     usleep(1000);
                 }
@@ -4493,8 +4479,8 @@ void channel_hopper(struct wif *wi[], int if_num, int chan_count )
             if(wi_set_channel(wi[card], ch ) == 0 )
             {
                 G.channel[card] = ch;
-                unused = write( G.cd_pipe[1], &card, sizeof(int) );
-                unused = write( G.ch_pipe[1], &ch, sizeof( int ) );
+                write( G.cd_pipe[1], &card, sizeof(int) );
+                write( G.ch_pipe[1], &ch, sizeof( int ) );
                 if(G.active_scan_sim > 0)
                     send_probe_request(wi[card]);
                 kill( getppid(), SIGUSR1 );
@@ -4527,7 +4513,6 @@ void channel_hopper(struct wif *wi[], int if_num, int chan_count )
 
 void frequency_hopper(struct wif *wi[], int if_num, int chan_count )
 {
-	ssize_t unused;
     int ch, ch_idx = 0, card=0, chi=0, cai=0, j=0, k=0, first=1, again=1;
     int dropped=0;
 
@@ -4576,8 +4561,8 @@ void frequency_hopper(struct wif *wi[], int if_num, int chan_count )
                 {
                     ch = wi_get_freq(wi[card]);
                     G.frequency[card] = ch;
-                    unused = write( G.cd_pipe[1], &card, sizeof(int) );
-                    unused = write( G.ch_pipe[1], &ch, sizeof( int ) );
+                    write( G.cd_pipe[1], &card, sizeof(int) );
+                    write( G.ch_pipe[1], &ch, sizeof( int ) );
                     kill( getppid(), SIGUSR1 );
                     usleep(1000);
                 }
@@ -4591,8 +4576,8 @@ void frequency_hopper(struct wif *wi[], int if_num, int chan_count )
             if(wi_set_freq(wi[card], ch ) == 0 )
             {
                 G.frequency[card] = ch;
-                unused = write( G.cd_pipe[1], &card, sizeof(int) );
-                unused = write( G.ch_pipe[1], &ch, sizeof( int ) );
+                write( G.cd_pipe[1], &card, sizeof(int) );
+                write( G.ch_pipe[1], &ch, sizeof( int ) );
                 kill( getppid(), SIGUSR1 );
                 usleep(1000);
             }
@@ -5117,7 +5102,7 @@ int rearrange_frequencies()
     int *freqs;
     int count, left, pos;
     int width, last_used=0;
-    int cur_freq, last_freq, round_done;
+    int cur_freq, round_done;
 //     int i;
 
     width = DEFAULT_CWIDTH;
@@ -5134,7 +5119,6 @@ int rearrange_frequencies()
     while(left > 0)
     {
 //         printf("pos: %d\n", pos);
-        last_freq = cur_freq;
         cur_freq = G.own_frequencies[pos%count];
         if(cur_freq == last_used)
             round_done=1;
@@ -5167,10 +5151,9 @@ int main( int argc, char *argv[] )
 {
     long time_slept, cycle_time, cycle_time2;
     char * output_format_string;
-    int caplen=0, i, j, fdh, fd_is_set, chan_count, freq_count, unused;
-    int fd_raw[MAX_CARDS], arptype[MAX_CARDS];
+    int caplen=0, i, j, fdh, chan_count, freq_count;
+    int fd_raw[MAX_CARDS];
     int ivs_only, found;
-    int valid_channel;
     int freq [2];
     int num_opts = 0;
     int option = 0;
@@ -5180,14 +5163,14 @@ int main( int argc, char *argv[] )
     int n = 0;
     int output_format_first_time = 1;
 
-    struct AP_info *ap_cur, *ap_prv, *ap_next;
+    struct AP_info *ap_cur, *ap_next;
     struct ST_info *st_cur, *st_next;
     struct NA_info *na_cur, *na_next;
     struct oui *oui_cur, *oui_next;
 
     struct pcap_pkthdr pkh;
 
-    time_t tt1, tt2, tt3, start_time;
+    time_t tt1, tt2, start_time;
 
     struct wif	       *wi[MAX_CARDS];
     struct rx_info     ri;
@@ -5248,12 +5231,10 @@ int main( int argc, char *argv[] )
     G.freqoption   =  0;
     G.num_cards	   =  0;
     fdh		   =  0;
-    fd_is_set	   =  0;
     chan_count	   =  0;
     time_slept     =  0;
     G.batt         =  NULL;
     G.chswitch     =  0;
-    valid_channel  =  0;
     G.usegpsd      =  0;
     G.channels     =  bg_chans;
     G.one_beacon   =  1;
@@ -5308,7 +5289,7 @@ int main( int argc, char *argv[] )
 
     gettimeofday( &tv0, NULL );
 
-    lt = localtime( (time_t *) &tv0.tv_sec );
+    lt = localtime( (time_t *)(void*) &tv0.tv_sec );
 
     G.keyout = (char*) malloc(512);
     memset( G.keyout, 0, 512 );
@@ -5319,7 +5300,6 @@ int main( int argc, char *argv[] )
 
     for(i=0; i<MAX_CARDS; i++)
     {
-        arptype[i]=0;
         fd_raw[i]=-1;
         G.channel[i]=0;
     }
@@ -5785,8 +5765,8 @@ usage:
 
             if( G.frequency[0] == 0 )
             {
-                unused = pipe( G.ch_pipe );
-                unused = pipe( G.cd_pipe );
+                pipe( G.ch_pipe );
+                pipe( G.cd_pipe );
 
                 signal( SIGUSR1, sighandler );
 
@@ -5833,8 +5813,8 @@ usage:
 
             if( G.channel[0] == 0 )
             {
-                unused = pipe( G.ch_pipe );
-                unused = pipe( G.cd_pipe );
+                pipe( G.ch_pipe );
+                pipe( G.cd_pipe );
 
                 signal( SIGUSR1, sighandler );
 
@@ -5939,7 +5919,7 @@ usage:
 
     if (G.usegpsd)
     {
-        unused = pipe( G.gc_pipe );
+        pipe( G.gc_pipe );
         signal( SIGUSR2, sighandler );
 
         if( ! fork() )
@@ -5957,7 +5937,6 @@ usage:
     start_time = time( NULL );
     tt1        = time( NULL );
     tt2        = time( NULL );
-    tt3        = time( NULL );
     gettimeofday( &tv3, NULL );
     gettimeofday( &tv4, NULL );
 
@@ -6224,8 +6203,6 @@ usage:
 
         if(G.s_file == NULL && G.s_iface != NULL)
         {
-            fd_is_set = 0;
-
             for(i=0; i<G.num_cards; i++)
             {
                 if( FD_ISSET( fd_raw[i], &rfds ) )
@@ -6325,7 +6302,6 @@ usage:
         unlink(  (char *) buffer );
     }
 
-    ap_prv = NULL;
     ap_cur = G.ap_1st;
 
     while( ap_cur != NULL )
@@ -6341,7 +6317,6 @@ usage:
 	if (G.detect_anomaly)
         	data_wipe(ap_cur->data_root);
 
-        ap_prv = ap_cur;
         ap_cur = ap_cur->next;
     }
 

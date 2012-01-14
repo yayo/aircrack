@@ -98,7 +98,7 @@ pthread_mutex_t mx_apl;			 /* lock write access to ap LL   */
 pthread_mutex_t mx_eof;			 /* lock write access to nb_eof  */
 pthread_mutex_t mx_ivb;			 /* lock access to ivbuf array   */
 pthread_cond_t  cv_eof;			 /* read EOF condition variable  */
-int  nb_eof = 0;				 /* # of threads who reached eof */
+unsigned int  nb_eof = 0;				 /* # of threads who reached eof */
 long nb_pkt = 0;				 /* # of packets read so far     */
 int mc_pipe[256][2];			 /* master->child control pipe   */
 int cm_pipe[256][2];			 /* child->master results pipe   */
@@ -107,7 +107,7 @@ int bf_nkeys[256];
 uchar bf_wepkey[64];
 int wepkey_crack_success = 0;
 int close_aircrack = 0;
-int id=0;
+unsigned int id=0;
 pthread_t tid[MAX_THREADS];
 struct WPA_data wpa_data[MAX_THREADS];
 int wpa_wordlists_done = 0;
@@ -232,9 +232,8 @@ int safe_write( int fd, void *buf, size_t len );
 void clean_exit(int ret)
 {
 	struct AP_info *ap_cur;
-	struct AP_info *ap_prv;
 	struct AP_info *ap_next;
-	int i=0;
+	unsigned int i=0;
 // 	int j=0, k=0, attack=0;
 	int child_pid;
 
@@ -277,7 +276,6 @@ void clean_exit(int ret)
 		wep.ivbuf = NULL;
 	}
 
-	ap_prv = NULL;
 	ap_cur = ap_1st;
 
 	while( ap_cur != NULL )
@@ -312,7 +310,6 @@ void clean_exit(int ret)
 			ap_cur->ptw_vague = NULL;
 		}
 
-		ap_prv = ap_cur;
 		ap_cur = ap_cur->next;
 	}
 
@@ -1134,7 +1131,7 @@ void read_thread( void *arg )
 				ap_cur->crypt = 2;
 
 				if (opt.do_ptw) {
-					int clearsize;
+					unsigned int clearsize;
 
 					clearsize = ivs2.len;
 
@@ -1406,7 +1403,7 @@ void read_thread( void *arg )
 				unsigned char *body = h80211 + z;
 				int dlen = pkh.caplen - (body-h80211) - 4 -4;
 				unsigned char clear[2048];
-				int clearsize, i, j, k;
+				unsigned int clearsize, i, j, k;
                                 int weight[16];
 
                                 if((h80211[1] & 0x03) == 0x03) //30byte header
@@ -2010,7 +2007,7 @@ void check_thread( void *arg )
 				ap_cur->crypt = 2;
 
 				if (opt.do_ptw) {
-					int clearsize;
+					unsigned int clearsize;
 
 					clearsize = ivs2.len;
 
@@ -2220,7 +2217,7 @@ void check_thread( void *arg )
 				unsigned char *body = h80211 + z;
 				int dlen = pkh.caplen - (body-h80211) - 4 -4;
 				unsigned char clear[2048];
-				int clearsize, k;
+				unsigned int clearsize;
 
                                 if((h80211[1] & 0x03) == 0x03) //30byte header
                                 {
@@ -2229,7 +2226,7 @@ void check_thread( void *arg )
                                 }
 
 				/* calculate keystream */
-				k = known_clear(clear, &clearsize, weight, h80211, dlen);
+				known_clear(clear, &clearsize, weight, h80211, dlen);
 				if (clearsize < (opt.keylen+3))
 					goto unlock_mx_apl;
 			}
@@ -2776,11 +2773,11 @@ int crack_wep_thread( void *arg )
 
 /* display the current votes */
 
-void show_wep_stats( int B, int force, PTW_tableentry table[PTW_KEYHSBYTES][PTW_n], int choices[KEYHSBYTES], int depth[KEYHSBYTES], int prod )
+void show_wep_stats( unsigned int B, int force, PTW_tableentry table[PTW_KEYHSBYTES][PTW_n], int choices[KEYHSBYTES], int depth[KEYHSBYTES], int prod )
 {
 	float delta;
 	struct winsize ws;
-	int i, et_h, et_m, et_s;
+	unsigned int i, et_h, et_m, et_s;
 	static int is_cleared = 0;
 
 	if( (chrono( &t_stats, 0 ) < 1.51 || wepkey_crack_success) && force == 0 )
@@ -3059,7 +3056,7 @@ int cmp_votes( const void *bs1, const void *bs2 )
 
 int calc_poll( int B )
 {
-	int i, n, cid, *vi;
+	unsigned int i, n, cid, *vi;
 	int votes[N_ATTACKS][256];
 
 	memset(&opt.votes, '\0', sizeof(opt.votes));
@@ -3070,7 +3067,7 @@ int calc_poll( int B )
 	{
 		n = sizeof( int );
 
-		if( safe_write( mc_pipe[cid][1], &B, n ) != n )
+		if( safe_write( mc_pipe[cid][1], &B, n ) != (int)n )
 		{
 			perror( "write failed" );
 			kill( 0, SIGTERM );
@@ -3090,7 +3087,7 @@ int calc_poll( int B )
 	{
 		n = sizeof( votes );
 
-		if( safe_read( cm_pipe[cid][0], votes, n ) != n )
+		if( safe_read( cm_pipe[cid][0], votes, n ) != (int)n )
 		{
 			perror( "read failed" );
 			kill( 0, SIGTERM );
@@ -3263,15 +3260,13 @@ int remove_votes(int keybyte, unsigned char value)
  * reaches B == keylen. It also stops when the current keybyte vote *
  * is lower than the highest vote divided by the fudge factor.      */
 
-int do_wep_crack1( int B )
+int do_wep_crack1( unsigned int B )
 {
-	int i, j, l, m, tsel, charread, askchange;
+	unsigned int i, j, l, m, tsel, charread;
 	int remove_keybyte_nr, remove_keybyte_value;
 	//int a,b;
 	static int k = 0;
 	char user_guess[4];
-
-	askchange = 1;
 
 	get_ivs:
 
@@ -3395,7 +3390,7 @@ int do_wep_crack1( int B )
 					// If it's not a number, reask
 					// Check if inputted value is correct (from 0 to and inferior to opt.keylen)
 					remove_keybyte_nr = atoi(user_guess);
-					if (isdigit((int)user_guess[0]) == 0 || remove_keybyte_nr < 0 || remove_keybyte_nr >= opt.keylen)
+					if (isdigit((int)user_guess[0]) == 0 || remove_keybyte_nr < 0 || ((unsigned int)remove_keybyte_nr) >= opt.keylen)
 						continue;
 
 
@@ -3558,9 +3553,9 @@ int do_wep_crack1( int B )
 
 /* experimental single bruteforce attack */
 
-int do_wep_crack2( int B )
+int do_wep_crack2( unsigned int B )
 {
-	int i, j;
+	unsigned int i, j;
 
 	switch( update_ivbuf() )
 	{
@@ -3847,10 +3842,9 @@ int crack_wpa_thread( void *arg )
 
 	struct WPA_data* data;
 	struct AP_info* ap;
-	int thread;
 	int ret=0;
-	int i, j, len, slen;
-	int nparallel = 1;
+	unsigned int i, j, len;
+	unsigned int nparallel = 1;
 
 #if defined(__i386__) || defined(__x86_64__)
 	// Check for SSE2, with SSE2 the algorithm works with 4 keys
@@ -3860,7 +3854,6 @@ int crack_wpa_thread( void *arg )
 
 	data = (struct WPA_data*)arg;
 	ap = data->ap;
-	thread = data->thread;
 	strncpy(essid, ap->essid, 36);
 
 	/* pre-compute the key expansion buffer */
@@ -3881,8 +3874,6 @@ int crack_wpa_thread( void *arg )
 	}
 
 	/* receive the essid */
-
-	slen = strlen(essid) + 4;
 
 	while( 1 )
 	{
@@ -4130,7 +4121,7 @@ int sql_wpacallback(void* arg, int ccount, char** values, char** columnnames ) {
 
 int do_wpa_crack()
 {
-	int i, j, cid, num_cpus, res;
+	unsigned int i, j, cid, num_cpus, res;
 	char key1[128];
 
     i = 0;
@@ -4378,7 +4369,7 @@ int crack_wep_dict()
 {
 	struct timeval t_last;
 	struct timeval t_now;
-	int i, origlen, keysize;
+	unsigned int i, origlen, keysize;
 	char *key;
 
 	key = (char*) malloc(sizeof(char) * (opt.keylen + 1));
@@ -4526,8 +4517,8 @@ static int crack_wep_ptw(struct AP_info *ap_cur)
 
 int main( int argc, char *argv[] )
 {
-	int i, n, ret, option, j, ret1, nbMergeBSSID, unused;
-	int cpu_count, showhelp, z, zz, forceptw;
+	unsigned int i, n, ret, j, ret1, nbMergeBSSID, unused, showhelp, z, zz, forceptw;
+	int option, cpu_count;
 	char *s, buf[128];
 	struct AP_info *ap_cur;
 	int old=0;
@@ -4759,7 +4750,7 @@ int main( int argc, char *argv[] )
 					} else if ( buf[0] == 'Y' && buf[1] == 'Y' ) {
 						opt.brutebytes[j++] = i++;
 					} else {
-						if ( n < 0 || n > 255 )
+						if ( n > 255 )
 						{
 							printf( "Invalid debug key.\n" );
 							printf("\"%s --help\" for help.\n", argv[0]);
@@ -4883,7 +4874,7 @@ int main( int argc, char *argv[] )
 				if (optarg)
 				{
 					if (sscanf(optarg, "%d", &opt.do_brute)!=1
-						|| opt.do_brute<0 || opt.do_brute>4)
+						|| opt.do_brute>4)
 					{
 						printf("Invalid option -x%s. [0-4]\n", optarg);
 						printf("\"%s --help\" for help.\n", argv[0]);
@@ -5157,7 +5148,7 @@ usage:
 					while( ap_cur != NULL && i < z )
 						{ i++; ap_cur = ap_cur->next; }
 				}
-				while( z < 0 || ap_cur == NULL );
+				while( ap_cur == NULL );
 			}
 			else
 			{

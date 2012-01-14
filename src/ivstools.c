@@ -129,7 +129,7 @@ void usage(int what)
 
 int merge( int argc, char *argv[] )
 {
-    int i, n, unused;
+    int i, n;
     unsigned long nbw;
     unsigned char buffer[1024];
     FILE *f_in, *f_out;
@@ -194,14 +194,14 @@ int merge( int argc, char *argv[] )
 
         if( i == 2 )
         {
-            unused = fwrite( buffer, 1, 4, f_out );
-            unused = fwrite( &ivs2, 1, sizeof(struct ivs2_filehdr), f_out );
+            fwrite( buffer, 1, 4, f_out );
+            fwrite( &ivs2, 1, sizeof(struct ivs2_filehdr), f_out );
         }
 
         while( ( n = fread( buffer, 1, 1024, f_in ) ) > 0 )
         {
             nbw += n;
-            unused = fwrite( buffer, 1, n, f_out );
+            fwrite( buffer, 1, n, f_out );
             printf( "%ld bytes written\r", nbw );
         }
 
@@ -217,7 +217,7 @@ int merge( int argc, char *argv[] )
 
 int dump_add_packet( unsigned char *h80211, int caplen)
 {
-    int i, n, z, seq, dlen, clen;
+    int i, n, z, dlen, clen;
     struct ivs2_pkthdr ivs2;
     unsigned char *p;
     unsigned char bssid[6];
@@ -240,9 +240,6 @@ int dump_add_packet( unsigned char *h80211, int caplen)
 
     if( ( h80211[0] & 0x0C ) == 0x04 )
         return FAILURE;
-
-    /* grab the sequence number */
-    seq = ((h80211[22]>>4)+(h80211[23]<<4));
 
     /* locate the access point's MAC address */
 
@@ -767,7 +764,7 @@ skip_station:
 int main( int argc, char *argv[] )
 {
     time_t tt;
-    int n, unused, ret;
+    int n, ret;
     FILE *f_in;
     unsigned long nbr;
     unsigned long nbivs;
@@ -847,8 +844,8 @@ int main( int argc, char *argv[] )
 
     fivs2.version = IVS2_VERSION;
 
-    unused = fwrite( IVS2_MAGIC, 4, 1, G.f_ivs );
-    unused = fwrite( &fivs2, sizeof(struct ivs2_filehdr), 1, G.f_ivs );
+    fwrite( IVS2_MAGIC, 4, 1, G.f_ivs );
+    fwrite( &fivs2, sizeof(struct ivs2_filehdr), 1, G.f_ivs );
 
     nbr = 0;
     tt = time( NULL ) - 1;

@@ -33,6 +33,7 @@
 #include <net80211/ieee80211_crypto.h>
 #include <net80211/ieee80211_ioctl.h>
 #include <net80211/ieee80211_radiotap.h>
+struct ieee80211_rateset;
 #include <net80211/ieee80211_proto.h>
 #include <stdio.h>
 #include <stdlib.h>

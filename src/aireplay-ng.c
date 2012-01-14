@@ -500,7 +500,6 @@ int read_packet(void *buf, size_t count, struct rx_info *ri)
 void read_sleep( int usec )
 {
     struct timeval tv, tv2, tv3;
-    int caplen;
     fd_set rfds;
 
     gettimeofday(&tv, NULL);
@@ -520,7 +519,7 @@ void read_sleep( int usec )
         }
 
         if( FD_ISSET( dev.fd_in, &rfds ) )
-            caplen = read_packet( h80211, sizeof( h80211 ), NULL );
+            read_packet( h80211, sizeof( h80211 ), NULL );
 
         gettimeofday(&tv2, NULL);
     }
@@ -529,7 +528,7 @@ void read_sleep( int usec )
 
 int filter_packet( unsigned char *h80211, int caplen )
 {
-    int z, mi_b, mi_s, mi_d, ext=0, qos;
+    int z, mi_b, mi_s, mi_d, ext=0;
 
     if(caplen <= 0)
         return( 1 );
@@ -537,7 +536,6 @@ int filter_packet( unsigned char *h80211, int caplen )
     z = ( ( h80211[1] & 3 ) != 3 ) ? 24 : 30;
     if ( ( h80211[0] & 0x80 ) == 0x80 )
     {
-        qos = 1; /* 802.11e QoS */
         z+=2;
     }
 
@@ -1083,7 +1081,7 @@ int capture_ask_packet( int *caplen, int just_grab )
         pfh_out.snaplen       = 65535;
         pfh_out.linktype      = LINKTYPE_IEEE802_11;
 
-        lt = localtime( (const time_t *) &tv.tv_sec );
+        lt = localtime( (const time_t *)(const void*) &tv.tv_sec );
 
         memset( strbuf, 0, sizeof( strbuf ) );
         snprintf( strbuf,  sizeof( strbuf ) - 1,
@@ -2242,7 +2240,7 @@ int do_attack_arp_resend( void )
     pfh_out.snaplen       = 65535;
     pfh_out.linktype      = LINKTYPE_IEEE802_11;
 
-    lt = localtime( (const time_t *) &tv.tv_sec );
+    lt = localtime( (const time_t *)(const void*) &tv.tv_sec );
 
     memset( strbuf, 0, sizeof( strbuf ) );
     snprintf( strbuf,  sizeof( strbuf ) - 1,
@@ -2605,7 +2603,7 @@ add_arp:
 int do_attack_caffe_latte( void )
 {
     int nb_bad_pkt;
-    int arp_off1, arp_off2;
+    int arp_off1;
     int i, n, caplen, nb_arp, z;
     long nb_pkt_read, nb_arp_tot, nb_ack_pkt;
     uchar flip[4096];
@@ -2653,7 +2651,7 @@ int do_attack_caffe_latte( void )
     pfh_out.snaplen       = 65535;
     pfh_out.linktype      = LINKTYPE_IEEE802_11;
 
-    lt = localtime( (const time_t *) &tv.tv_sec );
+    lt = localtime( (const time_t *)(const void*) &tv.tv_sec );
 
     memset( strbuf, 0, sizeof( strbuf ) );
     snprintf( strbuf,  sizeof( strbuf ) - 1,
@@ -2701,7 +2699,6 @@ int do_attack_caffe_latte( void )
     nb_arp      = 0;
     nb_arp_tot  = 0;
     arp_off1    = 0;
-    arp_off2    = 0;
 
     while( 1 )
     {
@@ -3976,7 +3973,7 @@ int do_attack_chopchop( void )
     pkh.caplen  = caplen;
     pkh.len     = caplen;
 
-    lt = localtime( (const time_t *) &tv.tv_sec );
+    lt = localtime( (const time_t *)(const void*) &tv.tv_sec );
 
     memset( strbuf, 0, sizeof( strbuf ) );
     snprintf( strbuf,  sizeof( strbuf ) - 1,
@@ -4081,10 +4078,9 @@ int make_arp_request(uchar *h80211, uchar *bssid, uchar *src_mac, uchar *dst_mac
 void save_prga(char *filename, uchar *iv, uchar *prga, int prgalen)
 {
     FILE *xorfile;
-    size_t unused;
     xorfile = fopen(filename, "wb");
-    unused = fwrite (iv, 1, 4, xorfile);
-    unused = fwrite (prga, 1, prgalen, xorfile);
+    fwrite (iv, 1, 4, xorfile);
+    fwrite (prga, 1, prgalen, xorfile);
     fclose (xorfile);
 }
 
@@ -4586,7 +4582,7 @@ int do_attack_fragment()
             xor_keystream(prga, h80211+24, length);
         }
 
-        lt = localtime( (const time_t *) &tv.tv_sec );
+        lt = localtime( (const time_t *)(const void*) &tv.tv_sec );
 
         memset( strbuf, 0, sizeof( strbuf ) );
         snprintf( strbuf,  sizeof( strbuf ) - 1,

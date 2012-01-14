@@ -90,14 +90,14 @@ struct options
 	int bssid_set;				 /* bssid set flag       */
 	char essid[33];				 /* target ESSID         */
 	unsigned char bssid[6];				 /* target BSSID         */
-	int nbcpu;					 /* # of cracker threads
+	unsigned int nbcpu;					 /* # of cracker threads
 									(= # of CPU)         */
 	int is_quiet;				 /* quiet mode flag      */
 
 	unsigned char debug[64];			 /* user-defined WEP key */
 	int debug_row[64] ;          /* user-defined Row WEP key */
 	unsigned char maddr[6];				 /* MAC address filter   */
-	int keylen;					 /* WEP key length       */
+	unsigned int keylen;					 /* WEP key length       */
 	int index;					 /* WEP key index        */
 	float ffact;				 /* bruteforce factor    */
 	int korek;					 /* attack strategy      */
@@ -106,7 +106,7 @@ struct options
 	int is_alnum;				 /* alphanum keyspace    */
 	int is_bcdonly;				 /* binary coded decimal */
 
-	int do_brute;				 /* bruteforce last 2 KB */
+	unsigned int do_brute;				 /* bruteforce last 2 KB */
 	int do_mt_brute;			 /* bruteforce last 2 KB
 									multithreaded for SMP*/
 	int do_testy;				 /* experimental attack  */
@@ -233,7 +233,7 @@ struct WPA_data {
 };
 
 
-void show_wep_stats( int B, int force, PTW_tableentry table[PTW_KEYHSBYTES][PTW_n], int choices[KEYHSBYTES], int depth[KEYHSBYTES], int prod );
+void show_wep_stats( unsigned int B, int force, PTW_tableentry table[PTW_KEYHSBYTES][PTW_n], int choices[KEYHSBYTES], int depth[KEYHSBYTES], int prod );
 
 
 #endif /* _AIRCRACK_NG_H */

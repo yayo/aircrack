@@ -165,7 +165,6 @@ unsigned char tmpbuf[2048];
 int capture_ask_packet( int *caplen )
 {
     time_t tr;
-    struct timeval tv;
 
     long nb_pkt_read;
     int i, j, n, mi_b, mi_s, mi_d;
@@ -204,9 +203,6 @@ int capture_ask_packet( int *caplen )
 
         if( dev.pfh_in.magic == TCPDUMP_CIGAM )
             SWAP32( pkh.caplen );
-
-        tv.tv_sec  = pkh.tv_sec;
-        tv.tv_usec = pkh.tv_usec;
 
         n = *caplen = pkh.caplen;
 
