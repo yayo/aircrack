@@ -160,6 +160,9 @@ int mygetch( ) {
   newt = oldt;
   newt.c_lflag &= ~( ICANON | ECHO );
   tcsetattr( STDIN_FILENO, TCSANOW, &newt );
+  fd_set fds;
+  FD_SET(STDIN_FILENO,&fds);
+  select(1,&fds,NULL,NULL,NULL);
   ch = getchar();
   tcsetattr( STDIN_FILENO, TCSANOW, &oldt );
   return ch;
