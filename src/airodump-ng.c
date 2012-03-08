@@ -36,8 +36,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
-#include <sys/wait.h>
-#include <sys/time.h>
+#include <sys/event.h>
 
 #ifndef TIOCGWINSZ
 	#include <sys/termios.h>
@@ -160,10 +159,21 @@ int mygetch( ) {
   newt = oldt;
   newt.c_lflag &= ~( ICANON | ECHO );
   tcsetattr( STDIN_FILENO, TCSANOW, &newt );
-  fd_set fds;
-  FD_SET(STDIN_FILENO,&fds);
-  select(1,&fds,NULL,NULL,NULL);
-  ch = getchar();
+  int kq=kqueue();
+  if(-1==kq)
+   {return(-1);
+   }
+  else
+   {struct kevent change;
+    EV_SET(&change,STDIN_FILENO,EVFILT_READ,EV_ADD|EV_ONESHOT,0,0,NULL);
+    if(1!=kevent(kq,&change,1,&change,1,NULL))
+     {ch=-1;
+     }
+    else
+     {ch = getchar();
+     }
+    close(kq);
+   }
   tcsetattr( STDIN_FILENO, TCSANOW, &oldt );
   return ch;
 }
